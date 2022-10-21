@@ -49,11 +49,15 @@ import com.adafruit.bluefruit.le.connect.mqtt.MqttManager;
 import com.adafruit.bluefruit.le.connect.mqtt.MqttSettings;
 import com.adafruit.bluefruit.le.connect.utils.KeyboardUtils;
 
+import java.nio.charset.Charset;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
+
+import cern.jet.stat.Probability;
 
 // TODO: register
 public abstract class UartBaseFragment extends ConnectedPeripheralFragment implements UartPacketManagerBase.Listener, MqttManager.MqttManagerListener {
@@ -545,6 +549,39 @@ public abstract class UartBaseFragment extends ConnectedPeripheralFragment imple
 
     private void reloadData() {
         List<UartPacket> packetsCache = mUartData.getPacketsCache();
+
+        String mPeripheralId= packetsCache.size() > 0 ? packetsCache.get(0).getPeripheralId() : null;
+        List<Integer> ecgValues= new ArrayList<>();
+        for(int i=0;i<packetsCache.size();i++){
+            byte[] mData= packetsCache.get(i).getData();
+            String formattedData = BleUtils.bytesToHex2(mData);
+            String[] strings = formattedData.split(" ");
+            String newText= strings[1].charAt(1) + strings[0];
+            newText= String.valueOf(Integer.parseInt(newText,16));
+            ecgValues.add(Integer.parseInt(newText));
+        }
+        double mean= mean(ecgValues);
+        double standardDeviation= standardDeviation(ecgValues);
+        Iterator it= ecgValues.iterator();
+        double normalDistribution= Probability.normal(mean, standardDeviation, 0.5);
+        List<Integer> heartBeatValues= new ArrayList<>();
+        while (it.hasNext()){
+            int ecgValue= (Integer) it.next();
+            StringBuilder stringBuilder= new StringBuilder();
+            stringBuilder.append(","+ecgValue);
+
+            if(normalDistribution < 0.5){
+                heartBeatValues.add(ecgValue);
+            }
+        }
+        packetsCache.removeAll(packetsCache);
+        for(int i=0;i<heartBeatValues.size();i++){
+            String byteText= String.valueOf(heartBeatValues.get(i));
+            byte[] data= byteText.getBytes(Charset.forName("UTF-8"));
+            UartPacket uartPacket= new UartPacket(mPeripheralId, UartPacket.TRANSFERMODE_TX, data);
+            packetsCache.add(uartPacket);
+        }
+
         final int packetsCacheSize = packetsCache.size();
         if (mPacketsCacheLastSize != packetsCacheSize) {        // Only if the buffer has changed
 
@@ -577,6 +614,30 @@ public abstract class UartBaseFragment extends ConnectedPeripheralFragment imple
         updateBytesUI();
     }
 
+    private double mean(List<Integer> ecgValues) {
+        double sum = 0;
+        for (int i = 0; i < ecgValues.size(); i++) {
+            sum += ecgValues.get(i);
+        }
+        return sum / ecgValues.size();
+    }
+
+    private double standardDeviation(List<Integer> ecgValues) {
+        if (ecgValues.size() == 0)
+            return 0;
+
+        double sum = 0;
+
+        double mean = mean(ecgValues);
+
+        for (int i = 0; i<ecgValues.size(); i++){
+            sum = sum + (ecgValues.get(i) - mean) * (ecgValues.get(i) - mean);
+        }
+        double squaredDiffMean = (sum) / (ecgValues.size());
+        double standardDev = (Math.sqrt(squaredDiffMean));
+
+        return standardDev;
+    }
 
     private void onUartPacketText(UartPacket packet) {
         if (mIsEchoEnabled || packet.getMode() == UartPacket.TRANSFERMODE_RX) {
