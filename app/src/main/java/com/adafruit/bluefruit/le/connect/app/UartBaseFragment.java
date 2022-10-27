@@ -48,6 +48,9 @@ import com.adafruit.bluefruit.le.connect.ble.central.BlePeripheralUart;
 import com.adafruit.bluefruit.le.connect.mqtt.MqttManager;
 import com.adafruit.bluefruit.le.connect.mqtt.MqttSettings;
 import com.adafruit.bluefruit.le.connect.utils.KeyboardUtils;
+import com.chaquo.python.PyObject;
+import com.chaquo.python.Python;
+import com.chaquo.python.android.AndroidPlatform;
 
 import java.nio.charset.Charset;
 import java.text.SimpleDateFormat;
@@ -550,7 +553,7 @@ public abstract class UartBaseFragment extends ConnectedPeripheralFragment imple
     private void reloadData() {
         List<UartPacket> packetsCache = mUartData.getPacketsCache();
 
-        String mPeripheralId= packetsCache.size() > 0 ? packetsCache.get(0).getPeripheralId() : null;
+        /*String mPeripheralId= packetsCache.size() > 0 ? packetsCache.get(0).getPeripheralId() : null;
         List<Integer> ecgValues= new ArrayList<>();
         for(int i=0;i<packetsCache.size();i++){
             byte[] mData= packetsCache.get(i).getData();
@@ -580,7 +583,7 @@ public abstract class UartBaseFragment extends ConnectedPeripheralFragment imple
             byte[] data= byteText.getBytes(Charset.forName("UTF-8"));
             UartPacket uartPacket= new UartPacket(mPeripheralId, UartPacket.TRANSFERMODE_TX, data);
             packetsCache.add(uartPacket);
-        }
+        }*/
 
         final int packetsCacheSize = packetsCache.size();
         if (mPacketsCacheLastSize != packetsCacheSize) {        // Only if the buffer has changed
@@ -647,12 +650,24 @@ public abstract class UartBaseFragment extends ConnectedPeripheralFragment imple
             String formattedData = BleUtils.bytesToHex2(bytes);
 
             String[] strings = formattedData.split(" ");
-            String newText= strings[1].charAt(1) + strings[0];
-            newText= String.valueOf(Integer.parseInt(newText,16));
+            String[] dataStrings= new String[strings.length/2];
+            int l= 0;
+            for(int j=0;j<strings.length/2;j++){
+                dataStrings[j]= strings[l+1].charAt(1) + strings[l];
+                dataStrings[j]= String.valueOf(Integer.parseInt(dataStrings[j],16));
+                l+=2;
+            }
 
-            formattedData= newText+"\n";
 
-            addTextToSpanBuffer(mTextSpanBuffer, formattedData, color, isBold);
+            Python python= Python.getInstance();
+            PyObject pyObject= python.getModule("script");
+            //PyObject object= pyObject.callAttr("sum");
+            PyObject object1= pyObject.callAttr("sum", 5,8);
+            for(String lineString : dataStrings) {
+                //lineString= lineString+"\n";
+                lineString= object1.toString()+"\n";
+                addTextToSpanBuffer(mTextSpanBuffer, lineString, color, isBold);
+            }
         }
     }
 

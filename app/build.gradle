@@ -1,4 +1,5 @@
 apply plugin: 'com.android.application'
+apply plugin: 'com.chaquo.python'
 
 android {
     compileSdkVersion 29
@@ -10,7 +11,21 @@ android {
         versionName "3.3.2"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true
-        resValue "string", "app_name", "CPS Lab"
+        resValue "string", "app_name", "SmartHealthApp"
+
+        ndk {
+            abiFilters "armeabi-v7a", "x86"
+        }
+
+        python {
+            buildPython "C:/Users/Ucchwas/AppData/Local/Programs/Python/Python310/python.exe"
+        }
+
+        sourceSets {
+            main {
+                python.srcDir "C:/Users/Ucchwas/OneDrive - Texas Tech University/Desktop/CPS LAB APP/SmartHealthApp/app/src/main/java/com/adafruit/bluefruit/le/connect/python"
+            }
+        }
     }
 
     compileOptions {

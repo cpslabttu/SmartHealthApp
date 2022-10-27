@@ -38,6 +38,9 @@ import com.github.mikephil.charting.data.LineData;
 import com.github.mikephil.charting.data.LineDataSet;
 import com.github.mikephil.charting.interfaces.datasets.ILineDataSet;
 
+import java.io.ByteArrayOutputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
 import java.lang.ref.WeakReference;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -419,14 +422,28 @@ public class PlotterFragment extends ConnectedPeripheralFragment implements Uart
             final float currentTimestamp = (System.currentTimeMillis() - mOriginTimestamp) / 1000.f;
             String dataString = BleUtils.bytesToHex2(subData);
 
+//            int[] intData= byteToShort(subData);
+//            String dataString= null;
+//            try {
+//                dataString = BleUtils.bytesToHex2(integersToBytes(intData));
+//            } catch (IOException e) {
+//                e.printStackTrace();
+//            }
             String[] strings = dataString.split(" ");
-            String newText= strings[1].charAt(1) + strings[0];
-            newText= String.valueOf(Integer.parseInt(newText,16));
-
-            dataString= newText;
-
-            final String[] lineStrings = dataString.replace("\r", "").split("\n");
-            for (String lineString : lineStrings) {
+            String[] dataStrings= new String[strings.length/2];
+            int l= 0;
+            for(int j=0;j<strings.length/2;j++){
+                dataStrings[j]= strings[l+1].charAt(1) + strings[l];
+                dataStrings[j]= String.valueOf(Integer.parseInt(dataStrings[j],16));
+                l+=2;
+            }
+//            String newText= strings[1].charAt(1) + strings[0];
+//            newText= String.valueOf(Integer.parseInt(newText,16));
+//
+//            dataString= newText;
+//
+//            final String[] lineStrings = dataString.replace("\r", "").split("\n");
+            for (String lineString : dataStrings) {
 //                    Log.d(TAG, "line: " + lineString);
                 final String[] valuesStrings = lineString.split("[,; \t]");
                 int j = 0;
@@ -457,6 +474,29 @@ public class PlotterFragment extends ConnectedPeripheralFragment implements Uart
         }
 
         mUartDataManager.removeRxCacheFirst(lastSeparator, peripheralIdentifier);
+    }
+
+    private int[] byteToShort(byte[] rawdata) {
+        int[] converted = new int[rawdata.length / 2];
+
+        for (int i = 0; i < converted.length; i++) {
+            // Wave file data are stored in little-endian order
+            int lo = rawdata[2*i];
+            int hi = rawdata[2*i+1];
+            converted[i] = ((hi&0xFF)<<8) | (lo&0xFF);
+        }
+        return converted;
+    }
+
+    private byte[] integersToBytes(int[] values) throws IOException {
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        DataOutputStream dos = new DataOutputStream(baos);
+        for(int i=0; i < values.length; ++i)
+        {
+            dos.writeInt(values[i]);
+        }
+
+        return baos.toByteArray();
     }
 
     // endregion

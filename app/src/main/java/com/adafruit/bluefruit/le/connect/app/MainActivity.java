@@ -36,6 +36,8 @@ import com.adafruit.bluefruit.le.connect.dfu.DfuUpdater;
 import com.adafruit.bluefruit.le.connect.dfu.ReleasesParser;
 import com.adafruit.bluefruit.le.connect.models.DfuViewModel;
 import com.adafruit.bluefruit.le.connect.utils.DialogUtils;
+import com.chaquo.python.Python;
+import com.chaquo.python.android.AndroidPlatform;
 import com.google.android.gms.common.GooglePlayServicesNotAvailableException;
 import com.google.android.gms.common.GooglePlayServicesRepairableException;
 import com.google.android.gms.common.GooglePlayServicesUtil;
@@ -97,6 +99,10 @@ public class MainActivity extends AppCompatActivity implements ScannerFragment.S
         if (savedInstanceState == null) {
             updateAndroidSecurityProvider(this);        // Call this before refreshSoftwareUpdatesDatabase because SSL connections will fail on Android 4.4 if this is not executed:  https://stackoverflow.com/questions/29916962/javax-net-ssl-sslhandshakeexception-javax-net-ssl-sslprotocolexception-ssl-han
             DfuUpdater.refreshSoftwareUpdatesDatabase(this, success -> Log.d(TAG, "refreshSoftwareUpdatesDatabase completed. Success: " + success));
+        }
+
+        if(!Python.isStarted()){
+            Python.start(new AndroidPlatform(this));
         }
     }
 
