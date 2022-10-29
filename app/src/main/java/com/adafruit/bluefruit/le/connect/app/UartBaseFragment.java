@@ -661,11 +661,11 @@ public abstract class UartBaseFragment extends ConnectedPeripheralFragment imple
 
             Python python= Python.getInstance();
             PyObject pyObject= python.getModule("script");
-            //PyObject object= pyObject.callAttr("sum");
-            PyObject object1= pyObject.callAttr("sum", 5,8);
+            int[] arr= {1,2,3,4,5};
+            PyObject object= pyObject.callAttr("butter_bandpass_filter", arr, 20, 200, 44100, 3);
             for(String lineString : dataStrings) {
-                //lineString= lineString+"\n";
-                lineString= object1.toString()+"\n";
+                lineString= lineString+"\n";
+                //lineString= object.toString()+"\n";
                 addTextToSpanBuffer(mTextSpanBuffer, lineString, color, isBold);
             }
         }

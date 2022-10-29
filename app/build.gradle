@@ -19,11 +19,18 @@ android {
 
         python {
             buildPython "C:/Users/Ucchwas/AppData/Local/Programs/Python/Python310/python.exe"
+
+            pip {
+                install "numpy"
+                install "pandas"
+                install "scipy"
+                install "matplotlib"
+            }
         }
 
         sourceSets {
             main {
-                python.srcDir "C:/Users/Ucchwas/OneDrive - Texas Tech University/Desktop/CPS LAB APP/SmartHealthApp/app/src/main/java/com/adafruit/bluefruit/le/connect/python"
+                python.srcDir "C:/Users/Ucchwas/Downloads/SmartHealthApp/SmartHealthApp/app/src/main/java/com/adafruit/bluefruit/le/connect/python"
             }
         }
     }
