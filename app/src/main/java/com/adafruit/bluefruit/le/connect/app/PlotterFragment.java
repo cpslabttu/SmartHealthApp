@@ -6,6 +6,7 @@ import android.content.Context;
 import android.graphics.Color;
 import android.graphics.DashPathEffect;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.Handler;
 import android.os.Looper;
 import androidx.annotation.NonNull;
@@ -22,7 +23,9 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.EditText;
 import android.widget.SeekBar;
+import android.widget.Toast;
 
 import com.adafruit.bluefruit.le.connect.R;
 import com.adafruit.bluefruit.le.connect.ble.BleUtils;
@@ -32,16 +35,26 @@ import com.adafruit.bluefruit.le.connect.ble.central.BleScanner;
 import com.adafruit.bluefruit.le.connect.ble.central.UartDataManager;
 import com.adafruit.bluefruit.le.connect.style.UartStyle;
 import com.adafruit.bluefruit.le.connect.utils.DialogUtils;
+import com.chaquo.python.PyObject;
+import com.chaquo.python.Python;
 import com.github.mikephil.charting.charts.LineChart;
 import com.github.mikephil.charting.data.Entry;
 import com.github.mikephil.charting.data.LineData;
 import com.github.mikephil.charting.data.LineDataSet;
 import com.github.mikephil.charting.interfaces.datasets.ILineDataSet;
+import com.opencsv.CSVReader;
 
+import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.lang.ref.WeakReference;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -60,6 +73,7 @@ public class PlotterFragment extends ConnectedPeripheralFragment implements Uart
     // UI
     private SeekBar xMaxEntriesSeekBar;
     private LineChart mChart;
+    private EditText heartRateEditText;
 
     // Data
     private UartDataManager mUartDataManager;
@@ -106,6 +120,7 @@ public class PlotterFragment extends ConnectedPeripheralFragment implements Uart
 
         // UI
         mChart = view.findViewById(R.id.chart);
+        heartRateEditText= view.findViewById(R.id.heartBeatRate);
         WeakReference<PlotterFragment> weakThis = new WeakReference<>(this);
         SwitchCompat autoscrollSwitch = view.findViewById(R.id.autoscrollSwitch);
         autoscrollSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
@@ -437,6 +452,30 @@ public class PlotterFragment extends ConnectedPeripheralFragment implements Uart
                 dataStrings[j]= String.valueOf(Integer.parseInt(dataStrings[j],16));
                 l+=2;
             }
+
+            //Pan_Tompkins implementation
+            /*StringBuilder text= new StringBuilder();
+            for(String lineString : dataStrings){
+                text.append(lineString+"\n");
+            }
+            System.out.println("Pan_Tompkins" + text.toString());
+            InputStream is= getResources().openRawResource(R.raw.ecg_data);
+            List<List<String>> records = new ArrayList<>();
+            BufferedReader br = new BufferedReader(new InputStreamReader(is, Charset.forName("UTF-8")));
+            String line;
+            try {
+                while ((line = br.readLine()) != null) {
+                    String[] values = line.split(",");
+                    records.add(Arrays.asList(values));
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            Python python= Python.getInstance();
+            PyObject pyObject= python.getModule("Pan_Tompkins");
+            PyObject object= pyObject.callAttr("findPeaksForECG", records);
+            String objectToString= object.toString();*/
+
 //            String newText= strings[1].charAt(1) + strings[0];
 //            newText= String.valueOf(Integer.parseInt(newText,16));
 //
@@ -444,6 +483,7 @@ public class PlotterFragment extends ConnectedPeripheralFragment implements Uart
 //
 //            final String[] lineStrings = dataString.replace("\r", "").split("\n");
             for (String lineString : dataStrings) {
+                heartRateEditText.setText(lineString);
 //                    Log.d(TAG, "line: " + lineString);
                 final String[] valuesStrings = lineString.split("[,; \t]");
                 int j = 0;

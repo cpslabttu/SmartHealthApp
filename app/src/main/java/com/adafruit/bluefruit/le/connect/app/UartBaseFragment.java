@@ -649,6 +649,9 @@ public abstract class UartBaseFragment extends ConnectedPeripheralFragment imple
             final byte[] bytes = packet.getData();
             String formattedData = BleUtils.bytesToHex2(bytes);
 
+//            Python python= Python.getInstance();
+//            PyObject pyObject= python.getModule("script");
+
             String[] strings = formattedData.split(" ");
             String[] dataStrings= new String[strings.length/2];
             int l= 0;
@@ -659,10 +662,13 @@ public abstract class UartBaseFragment extends ConnectedPeripheralFragment imple
             }
 
 
-            Python python= Python.getInstance();
-            PyObject pyObject= python.getModule("script");
-            int[] arr= {1,2,3,4,5};
-            PyObject object= pyObject.callAttr("butter_bandpass_filter", arr, 20, 200, 44100, 3);
+//            int[] arr= new int[dataStrings.length];
+//            for (int i=0;i<arr.length;i++){
+//                arr[i] = Integer.parseInt(dataStrings[i]);
+//            }
+//            PyObject object= pyObject.callAttr("butter_bandpass_filter", arr, 20, 200, 44100, 3);
+//            String objectToString= object.toString();
+//            String[] lineStrings= objectToString.split(" ");
             for(String lineString : dataStrings) {
                 lineString= lineString+"\n";
                 //lineString= object.toString()+"\n";

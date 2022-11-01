@@ -121,5 +121,7 @@ dependencies {
     //
     testImplementation 'junit:junit:4.13.1'
 
+    // https://mvnrepository.com/artifact/com.opencsv/opencsv
+    implementation group: 'com.opencsv', name: 'opencsv', version: '3.7'
 
 }
